@@ -89,43 +89,7 @@ def JP_classify(method,X,y,n_fold):
         Returns:
 
         """
-    #from sklearn import cross_validation
 
-    #bs = cross_validation.Bootstrap(n=len(X_1), n_bootstraps=n_iter, n_train=0.8, n_test=0.2, random_state=0)
-
-
-    #n_fold = 5
-
-
-    # inner_cv = StratifiedKFold(n_splits=n_fold, shuffle=False, random_state=234)
-    # outer_cv = StratifiedKFold(n_splits=n_fold, shuffle=False, random_state=234)
-
-    # avg_acc = []
-    # avg_train_acc = []
-    # avg_TP = []
-    # avg_TN = []
-    # avg_FP = []
-    # avg_FN = []
-    # avg_sen = []
-    # avg_spec = []
-    #
-    # roc_label = []
-    # roc_pred = []
-    # roc_prob = []
-    # outer_loop = 0
-    # print('loading')
-    # n_samples = len(X_1)
-    # for idx in range(n_iter):
-    #
-    #     rand_idx = np.random.choice(X_1.shape[0], X_0.shape[0])
-    #     X = np.concatenate((X_0, X_1[rand_idx]))
-    #     y = np.zeros((X.shape[0],), dtype=int)
-    #     y[:X_0.shape[0]] = 1
-    #
-    #     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    #
-    #     sss = StratifiedShuffleSplit(n_splits=1, test_size=0.25, random_state=0)
-    #     print(outer_loop)
     inner_cv = StratifiedKFold(n_splits=n_fold, shuffle=False, random_state=234)
     outer_cv = StratifiedKFold(n_splits=n_fold, shuffle=False, random_state=234)
 
@@ -143,7 +107,7 @@ def JP_classify(method,X,y,n_fold):
     roc_prob = []
     outer_loop = 0
     print('loading')
-    # n_samples = len(X_1)
+
     for train_index, test_index in outer_cv.split(X, y):
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
@@ -154,7 +118,6 @@ def JP_classify(method,X,y,n_fold):
         if method == "RF":
             params = {'randomforest__min_samples_leaf': np.arange(1, 51, 5),
                       'randomforest__n_estimators': np.arange(10, 100, 10)}
-            # clf_m = RandomForestClassifier(random_state=0)
 
             pipe = Pipeline([
                 ('featureExtract', VarianceThreshold()),
@@ -163,9 +126,6 @@ def JP_classify(method,X,y,n_fold):
             ])
         elif method == 'SVM':
             params = {'svm__alpha': np.logspace(-4, 7, 12)}
-            # params = {'svm__alpha': np.logspace(-5, -3, 10),
-            #           'kernel__gamma': np.logspace(-5, -3, 10)}
-            # clf_m = RandomForestClassifier(random_state=0)
 
             pipe = Pipeline([
                 ('featureExtract', VarianceThreshold()),
@@ -182,11 +142,9 @@ def JP_classify(method,X,y,n_fold):
             ])
 
         clf = GridSearchCV(estimator=pipe, param_grid=params, cv=inner_cv, scoring='f1', n_jobs=-1)
-        # clf = GridSearchCV(estimator=pipe, param_grid=params, cv=sss, scoring='accuracy',n_jobs = -1)
         clf.fit(X_train, y_train)
 
         fs = clf.best_estimator_.named_steps['featureExtract']
-        mask = fs.get_support()
         y_pred = clf.predict(X_test)
 
         if method == 'SVM':
